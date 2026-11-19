@@ -1,0 +1,25 @@
+﻿@model List<Course>
+@{
+    ViewData["Title"] = "My courses";
+}
+
+<h1 class="mb-1">My courses</h1>
+<p class="text-muted">The courses I have taken, and the projects I made in them.</p>
+
+<div class="row g-3">
+    @foreach (var course in Model)
+    {
+        <div class="col-12 col-md-6 col-xl-4">
+            <a asp-action="Details" asp-route-id="@course.CourseId" class="text-decoration-none">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <span class="badge text-bg-dark mb-2">@course.Code</span>
+                        <h2 class="h5 text-dark">@course.Title</h2>
+                        <p class="text-muted small mb-2">@(course.Term ?? "")</p>
+                        <p class="text-dark mb-0">@course.Description</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    }
+</div>

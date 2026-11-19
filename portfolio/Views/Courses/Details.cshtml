@@ -1,0 +1,36 @@
+﻿@model CourseDetails
+@{
+    ViewData["Title"] = Model.Course.Title;
+}
+
+<span class="badge text-bg-dark">@Model.Course.Code</span>
+<h1 class="mb-1">@Model.Course.Title</h1>
+<p class="text-muted">@Model.Course.Term</p>
+<p>@Model.Course.Description</p>
+
+<h2 class="h5 mt-4">Projects</h2>
+@if (Model.Projects.Count == 0)
+{
+    <p>No projects in this course yet.</p>
+}
+else
+{
+    <div class="row g-3">
+        @foreach (var project in Model.Projects)
+        {
+            <div class="col-12 col-md-6">
+                <a asp-controller="Projects" asp-action="Details" asp-route-id="@project.ProjectId" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <h3 class="h5 text-dark">@project.Title</h3>
+                            <p class="text-muted small mb-2">Completed @project.CompletedOn.ToString("yyyy-MM-dd")</p>
+                            <p class="text-dark mb-0">@project.Summary</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        }
+    </div>
+}
+
+<a asp-action="Index" class="btn btn-link px-0 mt-3">Back to courses</a>
