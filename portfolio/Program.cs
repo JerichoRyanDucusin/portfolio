@@ -23,8 +23,9 @@ var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    // Friendly pages: unexpected errors, and 404 or any other empty error status.
+    app.UseExceptionHandler("/Error/Unexpected");
+    app.UseStatusCodePagesWithReExecute("/Error/Status/{0}");
 }
 
 app.UseHttpsRedirection();
