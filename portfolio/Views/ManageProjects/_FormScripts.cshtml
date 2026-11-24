@@ -1,0 +1,30 @@
+﻿<partial name="_ValidationScriptsPartial" />
+
+<script>
+    // Browser check: every image link, line by line, before the form is sent.
+    (function () {
+        var form = document.getElementById('project-form');
+        var pattern = /^https?:\/\/\S+\.(png|jpe?g|gif|webp|svg)(\?\S*)?$/i;
+
+        form.addEventListener('submit', function (e) {
+            var lines = document.getElementById('ImageUrls').value.split(/\r?\n/);
+            var message = document.getElementById('image-js-error');
+            var bad = [];
+
+            lines.forEach(function (line, i) {
+                line = line.trim();
+                if (line !== '' && !pattern.test(line)) {
+                    bad.push(i + 1);
+                }
+            });
+
+            if (bad.length > 0) {
+                e.preventDefault();
+                message.textContent = 'Not a valid image address on line ' + bad.join(', ') +
+                    '. Use a link that ends in .png, .jpg, .jpeg, .gif, .webp or .svg.';
+            } else {
+                message.textContent = '';
+            }
+        });
+    })();
+</script>

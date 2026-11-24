@@ -115,4 +115,95 @@ public class ProjectRepository
     }
 
     // (Adding a project together with its images, in one transaction, comes in a later step.)
+    // CREATE: add a project and all its images in ONE transaction.
+    // If any image fails (for example the same URL twice), nothing is saved.
+    public async Task AddWithImagesAsync(Project project, List<string> imageUrls)
+    {
+        await using var connection = await _dataSource.OpenConnectionAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+
+        try
+        {
+            long projectId;
+            await using (var insert = new NpgsqlCommand(
+                "INSERT INTO portfolio.project (course_id, title, summary, video_url, completed_on) " +
+                "VALUES (@course_id, @title, @summary, @video_url, @completed_on) RETURNING project_id;",
+                connection, transaction))
+            {
+                insert.Parameters.AddWithValue("course_id", project.CourseId);
+                insert.Parameters.AddWithValue("title", project.Title.Trim());
+                insert.Parameters.AddWithValue("summary", Db.ToDb(project.Summary));
+                insert.Parameters.AddWithValue("video_url", Db.ToDb(project.VideoUrl));
+                insert.Parameters.AddWithValue("completed_on", project.CompletedOn);
+                projectId = Convert.ToInt64(await insert.ExecuteScalarAsync());
+            }
+
+            await InsertImagesAsync(connection, transaction, projectId, imageUrls);
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    // UPDATE: change a project and replace all its images in ONE transaction.
+    public async Task UpdateWithImagesAsync(Project project, List<string> imageUrls)
+    {
+        await using var connection = await _dataSource.OpenConnectionAsync();
+        await using var transaction = await connection.BeginTransactionAsync();
+
+        try
+        {
+            await using (var update = new NpgsqlCommand(
+                "UPDATE portfolio.project " +
+                "SET course_id = @course_id, title = @title, summary = @summary, " +
+                "    video_url = @video_url, completed_on = @completed_on " +
+                "WHERE project_id = @id;",
+                connection, transaction))
+            {
+                update.Parameters.AddWithValue("course_id", project.CourseId);
+                update.Parameters.AddWithValue("title", project.Title.Trim());
+                update.Parameters.AddWithValue("summary", Db.ToDb(project.Summary));
+                update.Parameters.AddWithValue("video_url", Db.ToDb(project.VideoUrl));
+                update.Parameters.AddWithValue("completed_on", project.CompletedOn);
+                update.Parameters.AddWithValue("id", project.ProjectId);
+                await update.ExecuteNonQueryAsync();
+            }
+
+            await using (var delete = new NpgsqlCommand(
+                "DELETE FROM portfolio.project_image WHERE project_id = @id;", connection, transaction))
+            {
+                delete.Parameters.AddWithValue("id", project.ProjectId);
+                await delete.ExecuteNonQueryAsync();
+            }
+
+            await InsertImagesAsync(connection, transaction, project.ProjectId, imageUrls);
+
+            await transaction.CommitAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
+    }
+
+    // Inserts one row per image address, numbered 1, 2, 3 ... in the order given.
+    private static async Task InsertImagesAsync(NpgsqlConnection connection, NpgsqlTransaction transaction,
+                                                long projectId, List<string> imageUrls)
+    {
+        for (int i = 0; i < imageUrls.Count; i++)
+        {
+            await using var insert = new NpgsqlCommand(
+                "INSERT INTO portfolio.project_image (project_id, image_url, position) " +
+                "VALUES (@project_id, @image_url, @position);", connection, transaction);
+            insert.Parameters.AddWithValue("project_id", projectId);
+            insert.Parameters.AddWithValue("image_url", imageUrls[i]);
+            insert.Parameters.AddWithValue("position", i + 1);
+            await insert.ExecuteNonQueryAsync();
+        }
+    }
 }
