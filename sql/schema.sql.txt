@@ -1,0 +1,38 @@
+-- Portfolio schema (PostgreSQL / Supabase).
+-- Warning: running this script deletes the whole "portfolio" schema and its data.
+DROP SCHEMA IF EXISTS portfolio CASCADE;
+CREATE SCHEMA portfolio;
+
+CREATE TABLE portfolio.course (
+  course_id    BIGINT        GENERATED ALWAYS AS IDENTITY,
+  code         VARCHAR(20)   NOT NULL,
+  title        VARCHAR(100)  NOT NULL,
+  term         VARCHAR(30),
+  description  VARCHAR(500),
+  CONSTRAINT pk_course      PRIMARY KEY (course_id),
+  CONSTRAINT uq_course_code UNIQUE (code)
+);
+
+CREATE TABLE portfolio.project (
+  project_id    BIGINT        GENERATED ALWAYS AS IDENTITY,
+  course_id     BIGINT        NOT NULL,
+  title         VARCHAR(100)  NOT NULL,
+  summary       VARCHAR(500),
+  video_url     VARCHAR(200),
+  completed_on  DATE          NOT NULL DEFAULT CURRENT_DATE,
+  CONSTRAINT pk_project        PRIMARY KEY (project_id),
+  CONSTRAINT fk_project_course FOREIGN KEY (course_id) REFERENCES portfolio.course (course_id) ON DELETE RESTRICT,
+  CONSTRAINT uq_project_title  UNIQUE (course_id, title),
+  CONSTRAINT chk_project_date  CHECK (completed_on >= DATE '2020-01-01')
+);
+
+CREATE TABLE portfolio.project_image (
+  image_id    BIGINT        GENERATED ALWAYS AS IDENTITY,
+  project_id  BIGINT        NOT NULL,
+  image_url   VARCHAR(300)  NOT NULL,
+  position    INTEGER       NOT NULL DEFAULT 1,
+  CONSTRAINT pk_project_image     PRIMARY KEY (image_id),
+  CONSTRAINT fk_image_project     FOREIGN KEY (project_id) REFERENCES portfolio.project (project_id) ON DELETE CASCADE,
+  CONSTRAINT uq_image_per_project UNIQUE (project_id, image_url),
+  CONSTRAINT chk_image_position   CHECK (position >= 1)
+);

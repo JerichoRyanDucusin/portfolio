@@ -1,0 +1,16 @@
+-- Sample data. Replace the titles, links and dates with your own real ones.
+INSERT INTO portfolio.course (code, title, term, description) VALUES
+  ('DBMWEB1', 'Database Management and Web Systems', '1st Sem 2026-2027', 'ASP.NET Core MVC with PostgreSQL.'),
+  ('MIXCPE1', 'Embedded Systems', '1st Sem 2026-2027', 'Arduino projects.');
+
+INSERT INTO portfolio.project (course_id, title, summary, video_url, completed_on)
+SELECT c.course_id, 'Library System', 'Books, members and loans.', NULL, DATE '2026-11-12'
+FROM portfolio.course c WHERE c.code = 'DBMWEB1';
+
+INSERT INTO portfolio.project (course_id, title, summary, video_url, completed_on)
+SELECT c.course_id, 'Three LEDs on an Arduino', 'Three LEDs driven by an Arduino.', NULL, DATE '2026-10-20'
+FROM portfolio.course c WHERE c.code = 'MIXCPE1';
+
+INSERT INTO portfolio.project_image (project_id, image_url, position)
+SELECT p.project_id, 'https://example.com/library-home.png', 1
+FROM portfolio.project p WHERE p.title = 'Library System';
