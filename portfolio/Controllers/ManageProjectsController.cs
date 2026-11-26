@@ -1,4 +1,5 @@
 ﻿using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Npgsql;
@@ -8,6 +9,7 @@ using portfolio.Models;
 namespace portfolio.Controllers;
 
 // The editor side: answers every address that starts with /ManageProjects.
+[Authorize]
 public class ManageProjectsController : Controller
 {
     // An image address: http(s), then letters, then an image extension (and maybe ?something).

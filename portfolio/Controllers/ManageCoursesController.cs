@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Npgsql;
 using portfolio.Data;
 using portfolio.Models;
@@ -6,6 +7,7 @@ using portfolio.Models;
 namespace portfolio.Controllers;
 
 // The editor side: answers every address that starts with /ManageCourses.
+[Authorize]
 public class ManageCoursesController : Controller
 {
     private readonly CourseRepository _courses;
